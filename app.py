@@ -32,29 +32,9 @@ st.title("🏠 지역별 금리 기반 아파트 평균가격 예측기")
 # ------------------------
 @st.cache_data
 def load_data():
-    # 아파트 가격 데이터
-    apt_df = pd.read_csv("아파트_매매_실거래_평균가격_20250613120830.csv", encoding="cp949")
-    apt_df = apt_df.rename(columns={apt_df.columns[0]: "지역"})
-    apt_long = apt_df.melt(id_vars=["지역"], var_name="연도", value_name="평균가격")
-
-    # ✅ 연도 컬럼 안전하게 정리
-    apt_long["연도"] = pd.to_numeric(apt_long["연도"], errors="coerce")
-    apt_long = apt_long.dropna(subset=["연도"])
-    apt_long["연도"] = apt_long["연도"].astype(int)
-    apt_long["평균가격"] = pd.to_numeric(apt_long["평균가격"], errors="coerce")
-
-    # 금리 데이터
-    rate_df = pd.read_csv("기준금리_가로형_오래된순.csv", encoding="cp949")
-    rate_df = rate_df.rename(columns={rate_df.columns[0]: "항목"})
-    rate_df = rate_df[rate_df["항목"].str.contains("기준금리")].drop(columns=["항목"])
-    rate_long = rate_df.melt(var_name="연도", value_name="기준금리")
-
-    rate_long["연도"] = pd.to_numeric(rate_long["연도"], errors="coerce")
-    rate_long = rate_long.dropna(subset=["연도"])
-    rate_long["연도"] = rate_long["연도"].astype(int)
-    rate_long["기준금리"] = pd.to_numeric(rate_long["기준금리"], errors="coerce")
-
-    return pd.merge(apt_long, rate_long, on="연도", how="inner")
+    apt_df = pd.read_csv("아파트_공통연도_정리본.csv")
+    rate_df = pd.read_csv("기준금리_공통연도_정리본.csv")
+    return pd.merge(apt_df, rate_df, on="연도", how="inner")
 
 data = load_data()
 
