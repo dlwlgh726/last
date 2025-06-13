@@ -31,7 +31,6 @@ st.title("📆 월별 기준금리 기반 아파트 평균가격 예측기")
 # 2. 데이터 로딩
 # ------------------------
 @st.cache_data
-
 def load_data():
     df = pd.read_csv("월별_아파트_기준금리_통합.csv")
     df["날짜"] = pd.to_datetime(df["날짜"])
@@ -71,16 +70,14 @@ region_data = data[(data["지역"] == selected_region) &
 
 if not region_data.empty and len(region_data) >= 3:
     region_data = region_data.copy()
-    region_data["weight"] = (region_data["날짜"] - region_data["날짜"].min()).dt.days + 1
-    region_data["weight"] = region_data["weight"] ** 2
 
     # ------------------------
-    # 5. 회귀 모델 학습 및 예측
+    # 5. 회귀 모델 학습 및 예측 (가중치 제거됨)
     # ------------------------
     X = region_data[["기준금리"]]
     y = region_data["평균가격"]
     model = LinearRegression()
-    model.fit(X, y, sample_weight=region_data["weight"])
+    model.fit(X, y)  # ✅ 가중치 없음
     predicted_price = model.predict(np.array([[input_rate]]))[0]
 
     # ------------------------
