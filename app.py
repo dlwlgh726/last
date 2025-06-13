@@ -36,6 +36,7 @@ def load_data():
     df = pd.read_csv("월별_아파트_기준금리_통합.csv")
     df["날짜"] = pd.to_datetime(df["날짜"])
     df = df.dropna(subset=["기준금리", "평균가격"])
+    df["년월"] = df["날짜"].dt.strftime("%Y년 %m월")
     return df
 
 data = load_data()
@@ -47,11 +48,18 @@ st.sidebar.header("사용자 설정")
 regions = sorted(data["지역"].unique())
 selected_region = st.sidebar.selectbox("📍 지역 선택", regions)
 
-# 날짜 슬라이더 설정
-min_date = data["날짜"].min()
-max_date = data["날짜"].max()
-date_range = st.sidebar.slider("📅 분석 기간 설정", min_value=min_date, max_value=max_date,
-                               value=(min_date, max_date), format="YYYY-MM")
+# 연월 슬라이더 설정
+ym_options = data["년월"].unique().tolist()
+ym_options.sort()
+def ym_to_date(ym_str):
+    return pd.to_datetime(ym_str.replace("년 ", "-").replace("월", "-01"))
+
+start_ym, end_ym = st.sidebar.select_slider("📅 분석 기간 설정 (연월)",
+    options=ym_options,
+    value=(ym_options[0], ym_options[-1]))
+
+start_date = ym_to_date(start_ym)
+end_date = ym_to_date(end_ym)
 
 input_rate = st.sidebar.slider("📉 기준금리 입력 (%)", 0.0, 10.0, 3.5, step=0.1)
 
@@ -59,7 +67,7 @@ input_rate = st.sidebar.slider("📉 기준금리 입력 (%)", 0.0, 10.0, 3.5, s
 # 4. 데이터 필터링
 # ------------------------
 region_data = data[(data["지역"] == selected_region) &
-                   (data["날짜"] >= date_range[0]) & (data["날짜"] <= date_range[1])]
+                   (data["날짜"] >= start_date) & (data["날짜"] <= end_date)]
 
 if not region_data.empty and len(region_data) >= 3:
     region_data = region_data.copy()
@@ -82,7 +90,7 @@ if not region_data.empty and len(region_data) >= 3:
     st.subheader(f"🔍 {selected_region} 지역 기준금리 {input_rate:.1f}%에 대한 예측")
     st.metric("📊 예상 평균 아파트 가격", f"{predicted_price:,.0f} 백만원")
     st.write(f"📈 기준금리와 아파트 평균가격 간 상관계수: **{corr:.3f}**")
-    st.caption(f"※ 선택된 기간: {date_range[0].strftime('%Y-%m')} ~ {date_range[1].strftime('%Y-%m')}, 총 {len(region_data)}개월")
+    st.caption(f"※ 선택된 기간: {start_ym} ~ {end_ym}, 총 {len(region_data)}개월")
 
     # ------------------------
     # 7. 산점도 + 회귀선
