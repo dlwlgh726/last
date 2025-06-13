@@ -32,7 +32,7 @@ st.title("🏠 지역별 금리 기반 아파트 평균가격 예측기")
 # ------------------------
 @st.cache_data
 def load_data():
-    apt_df = pd.read_csv("아파트_공통연도_정리본.csv")
+    apt_df = pd.read_csv("아파트_공통연도_시도별정리.csv")
     rate_df = pd.read_csv("기준금리_공통연도_정리본.csv")
     return pd.merge(apt_df, rate_df, on="연도", how="inner")
 
